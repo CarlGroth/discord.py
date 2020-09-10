@@ -1040,6 +1040,27 @@ class AutoShardedConnectionState(ConnectionState):
         ws = self._get_websocket(guild_id, shard_id=shard_id)
         await ws.request_chunks(guild_id, query=query, limit=limit, nonce=nonce)
 
+
+    async def request_offline_members(self, guilds, *, shard_id):
+        # get all the chunks
+        chunks = []
+        for guild in guilds:
+            chunks.extend(self.chunks_needed(guild))
+
+        # we only want to request ~75 guilds per chunk request.
+        splits = [guilds[i:i + 75] for i in range(0, len(guilds), 75)]
+        for split in splits:
+            await self.chunker([g.id for g in split], shard_id=shard_id)
+
+        # wait for the chunks
+        if chunks:
+            try:
+                await utils.sane_wait_for(chunks, timeout=len(chunks) * 30.0)
+            except asyncio.TimeoutError:
+                log.info('Somehow timed out waiting for chunks.')
+            else:
+                log.info('Finished requesting guild member chunks for %d guilds.', len(guilds))
+
     async def _delay_ready(self):
         await self.shards_launched.wait()
         processed = []
