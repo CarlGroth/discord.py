@@ -292,6 +292,10 @@ class ConnectionState:
     def _get_message(self, msg_id):
         return utils.find(lambda m: m.id == msg_id, reversed(self._messages)) if self._messages else None
 
+    def chunks_needed(self, guild):
+        for _ in range(math.ceil(guild._member_count / 1000)):
+            yield self.receive_chunk(guild.id)
+
     def _add_guild_from_data(self, guild):
         guild = Guild(data=guild, state=self)
         self._add_guild(guild)
