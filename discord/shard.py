@@ -328,7 +328,7 @@ class AutoShardedClient(Client):
         else:
             return ShardInfo(parent, self.shard_count)
 
-    @utils.cached_property
+    @property
     def shards(self):
         """Mapping[int, :class:`ShardInfo`]: Returns a mapping of shard IDs to their respective info object."""
         return { shard_id: ShardInfo(parent, self.shard_count) for shard_id, parent in self.__shards.items() }
@@ -356,7 +356,7 @@ class AutoShardedClient(Client):
         InvalidArgument
             If any guild is unavailable or not large in the collection.
         """
-        if any(not g.large or g.unavailable for g in guilds):
+        if any(g.unavailable for g in guilds):
             raise InvalidArgument('An unavailable or non-large guild was passed.')
 
         _guilds = sorted(guilds, key=lambda g: g.shard_id)
