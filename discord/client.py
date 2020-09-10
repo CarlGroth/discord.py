@@ -402,7 +402,7 @@ class Client:
         :exc:`.InvalidArgument`
             If any guild is unavailable or not large in the collection.
         """
-        if any(not g.large or g.unavailable for g in guilds):
+        if any(g.unavailable for g in guilds):
             raise InvalidArgument('An unavailable or non-large guild was passed.')
 
         await self._connection.request_offline_members(guilds)
